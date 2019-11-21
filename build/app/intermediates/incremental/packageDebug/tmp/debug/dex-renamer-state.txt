@@ -1,0 +1,4 @@
+#Sun Nov 10 20:27:41 WIB 2019
+base.0=/home/cantona/AndroidStudioProjects/remake_ta/build/app/intermediates/transforms/dexMerger/debug/0
+path.0=classes.dex
+renamed.0=classes.dex
