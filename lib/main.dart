@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'Homepage.dart';
+import 'map_view.dart';
 
-void main() => runApp(MyApp());
+const API_KEY = "AIzaSyDp-x54CkbpwRxOn4g-IALcuGC7YFbpOhU";
+
+void main(){
+  MapView.setApiKey(API_KEY);
+  runApp(new MyApp());
+}
+
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.

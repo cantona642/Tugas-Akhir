@@ -2,8 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-//import 'package:permission_handler/permission_handler.dart';
+import 'figure_joint_type.dart';
+import 'polygon.dart';
+
 import 'map_view.dart';
+//import 'package:permission_handler/permission_handler.dart';
+
 
 const API_KEY = "AIzaSyDp-x54CkbpwRxOn4g-IALcuGC7YFbpOhU";
 
@@ -15,13 +19,44 @@ class HomePage extends StatefulWidget{
 class HomePageState extends State<HomePage>{
   Completer<GoogleMapController> _controller = Completer();
   MapView mapView = new MapView();
+  var staticMapProvider = new StaticMapProvider(API_KEY);
+  var compositeSubscription = new CompositeSubscription();
+  Uri staticMapUri;
+  double zoomVal=5.0;
 
-  @override
-  void main(){
-    MapView.setApiKey(API_KEY);
+  showroute() {
+    mapView.show(
+        new MapOptions(
+            showUserLocation: true,
+            showCompassButton: true,
+            showMyLocationButton: true,
+            hideToolbar: false));
+
+    StreamSubscription sub = mapView.onMapReady.listen((_){
+      mapView.setPolygons(_polygons);
+    });
+
+    compositeSubscription.add(sub);
+    sub = mapView.onLocationUpdated.listen((location){
+      print("locationupdate $location");
+    });
   }
 
-  double zoomVal=5.0;
+
+
+  List<Polygon2> _polygons = <Polygon2>[
+    new Polygon2(
+        "111",
+        <Location>[
+          new Location(45.5231233, -122.6733130),
+        ],
+        jointType: FigureJointType.bevel,
+        strokeWidth: 5.0,
+        strokeColor: Colors.red,
+        fillColor: Color.fromARGB(75, 255, 0, 0)),
+  ];
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,15 +175,17 @@ class HomePageState extends State<HomePage>{
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Container(
-                    width: 180,
-                    height: 200,
+                    //width: 180,
+                    //height: 200,
                     child: ClipRRect(
                       borderRadius: new BorderRadius.circular(24.0),
                       child: Image(
                         fit: BoxFit.fill,
                         image: NetworkImage(_image),
                       ),
-                    ),),
+                    ),
+                  //onTap: showroute,
+                  ),
                   Container(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -175,7 +212,8 @@ class HomePageState extends State<HomePage>{
                     color: Color(0xff6200ee),
                     fontSize: 24.0,
                     fontWeight: FontWeight.bold),
-              )),
+              )
+          ),
         ),
         SizedBox(height:5.0),
         Container(
@@ -189,7 +227,7 @@ class HomePageState extends State<HomePage>{
                         color: Colors.black54,
                         fontSize: 18.0,
                       ),
-                    )),
+                    ),),
                 Container(
                   child: Icon(
                     FontAwesomeIcons.solidStar,
@@ -284,6 +322,13 @@ class HomePageState extends State<HomePage>{
     );
   }
 }
+
+class StaticMapProvider {
+  final String googleMapsApiKey;
+
+  StaticMapProvider(this.googleMapsApiKey);
+}
+
 Marker mymarker = Marker(
   markerId: MarkerId('markersaya'),
 );
@@ -292,7 +337,7 @@ Marker museumnasionalMarker = Marker(
   draggable: false,
   markerId: MarkerId('museumNasional'),
   position: LatLng(-6.1764021, 106.8194014),
-  infoWindow: InfoWindow(title: 'Museum Nasional'),
+    infoWindow: InfoWindow(title: 'Museum Nasional'),
   icon: BitmapDescriptor.defaultMarkerWithHue(
     BitmapDescriptor.hueOrange,
   ),
@@ -343,3 +388,36 @@ Marker newyork3Marker = Marker(
     BitmapDescriptor.hueViolet,
   ),
 );
+
+
+
+class CompositeSubscription {
+  Set<StreamSubscription> _subscriptions = new Set();
+
+  void cancel() {
+    for (var n in this._subscriptions) {
+      n.cancel();
+    }
+    this._subscriptions = new Set();
+  }
+
+  void add(StreamSubscription subscription) {
+    this._subscriptions.add(subscription);
+  }
+
+  void addAll(Iterable<StreamSubscription> subs) {
+    _subscriptions.addAll(subs);
+  }
+
+  bool remove(StreamSubscription subscription) {
+    return this._subscriptions.remove(subscription);
+  }
+
+  bool contains(StreamSubscription subscription) {
+    return this._subscriptions.contains(subscription);
+  }
+
+  List<StreamSubscription> toList() {
+    return this._subscriptions.toList();
+  }
+}
